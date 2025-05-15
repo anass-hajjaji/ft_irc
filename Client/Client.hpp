@@ -6,11 +6,12 @@
 class Client
 {
 private:
-	Socket clientSocket;
+	Socket	clientSocket;
+	char	buffer[BUFFER_SIZE];
 public:
-	Client(/* args */);
+	Client(Socket server);
 	~Client();
-	void connectToServer();
+	void connectToServer(Socket server);
 	void sendData();
 	void receiveData();
 	void disconnectFromServer();
