@@ -7,13 +7,10 @@ class Client
 {
 private:
 	Socket	clientSocket;
-	char	buffer[BUFFER_SIZE];
 public:
-	Client(Socket server);
+	Client();
+	Client(Socket clientSocket);
 	~Client();
-	void connectToServer(Socket server);
-	void sendData();
-	void receiveData();
-	void disconnectFromServer();
+	void disconnectFromServer();;
 };
 #endif

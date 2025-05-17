@@ -1,22 +1,22 @@
-srcs = 
-objs = ${srcs:.cpp=.o} 
+srcs = main.cpp Server/Server.cpp Client/Client.cpp Socket.cpp
+objs = $(srcs:.cpp=.o)
 cc = c++
-flags = -Werror -Wall -Warning -std=98
-header = 
-name = 
+flags = -Werror -Wall -Wextra -std=c++98
+header = Server/Server.hpp Client/Client.hpp Socket.hpp
+name = irc
 
 %.o : %.cpp
-	${cc} ${flags} -c $< -o $@
+	${cc} $(flags) -c $< -o $@
 
-${name} : all
+all : ${name}
 
-all : ${header}
+${name} : ${objs} ${header}
 	${cc} ${flags} ${objs} -o ${name}
 
 clean:
-	rm ${objs}
+	rm -f ${objs}
 
 fclean: clean
-	rm ${name}
+	rm -f ${name}
 
 re: fclean all

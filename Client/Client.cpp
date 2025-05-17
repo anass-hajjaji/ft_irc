@@ -1,20 +1,20 @@
 #include "Client.hpp"
 
-Client::Client(Socket server)
+Client::Client()
 {
-	clientSocket = Socket();
-	connectToServer(server);
+	clientSocket = Socket(1);
+}
+
+Client::Client(Socket socket):clientSocket(socket)
+{
+	
 }
 
 Client::~Client()
 {}
 
-void Client::connectToServer(Socket server)
-{
-	connect(server.getSocketFd(), (struct sockaddr*)&server.getSocketAddress(), sizeof(server.getSocketAddress()));
-}
-
 void Client::disconnectFromServer()
 {
 	clientSocket.closeSocket();
 }
+
