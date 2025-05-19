@@ -11,16 +11,17 @@ private:
 	std::string _username;
 	std::string _realName;
 	std::string	_password;
+	bool		_isAuthenticated;
 public:
 	Client();
 	Client(Socket _clientSocket);
 	~Client();
 	void		disconnectFromServer();
 	Socket		&getClientSocket();
-	std::string &getNickName() const;
-	std::string &getUserName() const;
-	std::string &getRealName() const;
-	std::string	&getPassword() const;
+	std::string getNickName() const;
+	std::string getUserName() const;
+	std::string getRealName() const;
+	std::string	getPassword() const;
 	void		setPassword(std::string &value);
 	void		setNickName(std::string &value);
 	void		setRealName(std::string &value);

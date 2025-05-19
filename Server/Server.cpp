@@ -72,6 +72,9 @@ void Server::startListening()
 void Server::receiveData(int i)
 {
 	ssize_t bytes;
+	Client *c;
+
+	c = getClientByFd(_pfds[i].fd);
 	std::memset(_buffer, 0, sizeof(_buffer));
 	bytes = recv(_pfds[i].fd, _buffer, sizeof(_buffer), 0);
 	if (!bytes)
@@ -82,7 +85,17 @@ void Server::receiveData(int i)
 	}
 	if (bytes < 0)
 		throw std::runtime_error("failed to receive a new message!");
-	std::cout << "received the message: " << _buffer;
+	parseMessage(_buffer, c);
+}
+
+Client *Server::getClientByFd(int fd)
+{
+	for (std::vector<Client>::iterator it = _allClients.begin(); it != _allClients.end(); it++)
+	{
+		if (it->getClientSocket().getSocketFd() == fd)
+			return (&(*it));
+	}
+	return nullptr;
 }
 
 Socket &Server::getServerSocket()
@@ -128,4 +141,90 @@ void signalHander(int sig)
 {
 	(void)sig;
 	Server::quitServer();
+}
+
+
+void parseMessage(char *buf, Client *c)
+{
+	std::string parse(buf);
+	std::vector<std::string> params;
+	size_t start = 0;
+	size_t end;
+
+	parse = extractMessage(parse);
+	while ((end = parse.find(" ", start)) != std::string::npos)
+	{
+		params.push_back(parse.substr(start, end - start));
+		start = end + 1;
+	}
+	if (start < parse.size())
+		params.push_back(parse.substr(start));
+	if (params.size() && params[0] != "QUIT")
+	{
+		std::cout << "handling " << params[0] << std::endl;
+		parseParams(params, c);
+	}
+	// std::cout << "nick name: " << c->getNickName() << " username: " << c->getUserName() << std::endl;
+}
+
+int	identifyCommand(std::string cmd)
+{
+	if (!cmd.compare("NICK"))
+		return (0);
+	if (!cmd.compare("USER"))
+		return (1);
+	if (!cmd.compare("PASS"))
+		return (2);
+	return (-1);
+} 
+
+void parseParams(std::vector<std::string> &params, Client *c)
+{
+	int cmd;
+
+	cmd = identifyCommand(params[0]);
+	switch (cmd)
+	{
+		case 0:
+			handleNickNameCommand(params, c);
+			break;
+		case 1:
+			handleUserCommand(params, c);
+			break ;
+		case 2:
+			handlePassCommand(params, c);
+			break ;
+		default:
+			std::cout << "unknown command " << cmd << std::endl;
+	}
+}
+
+void handlePassCommand(std::vector<std::string> &params, Client *c)
+{
+	//handle errors
+	c->setPassword(params[1]);
+}
+
+void handleNickNameCommand(std::vector<std::string> &params, Client *c)
+{
+	//handle errors
+	c->setNickName(params[1]);
+}
+
+void handleUserCommand(std::vector<std::string> &params, Client *c)
+{
+	//handle errors
+	//handle long real name
+	c->setUserName(params[1]);
+	c->setRealName(params.back());
+}
+
+std::string extractMessage(std::string m)
+{
+	size_t end;
+
+	end = m.find("\r\n");
+	if (end != std::string::npos)
+		return (m.substr(0, end));
+	return (m);
 }

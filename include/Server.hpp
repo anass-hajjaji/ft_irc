@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <cstring>
+#include <string>
 #include <poll.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -42,8 +43,15 @@ public:
 	std::vector<Client> 				getAllClients();
 	static std::vector<struct pollfd>	getPfds();
 	char								*getBuffer();
+	Client								*getClientByFd(int fd);
 };
 
-
+void parseMessage(char *buf, Client *c);
+void parseParams(std::vector<std::string> &params, Client *c);
+int	identifyCommand(std::string cmd);
+void handleNickNameCommand(std::vector<std::string> &params, Client *c);
+void handleUserCommand(std::vector<std::string> &params, Client *c);
+void handlePassCommand(std::vector<std::string> &params, Client *c);
+std::string extractMessage(std::string m);
 void signalHander(int sig);
 #endif
