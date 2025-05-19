@@ -1,8 +1,11 @@
-#include "Server.hpp"
+#include "../include/Server.hpp"
 
-//CHECK FOR FAILURES
+std::vector<pollfd> Server::_pfds;
 
-Server::Server(std::string name, std::string password, unsigned short port):name(name), password(password), port(port)
+Server::Server():_name("default"),_password("defaut"),_port(8080)
+{}
+
+Server::Server(std::string name, std::string password, unsigned short port):_name(name), _password(password), _port(port)
 {
 }
 
@@ -14,73 +17,115 @@ void Server::setupServer()
 {
 	struct pollfd pfd;
 	int opt = 1;
-	
-	serverSocket = Socket();
-	serverSocket.setSocketAdress(AF_INET, port, INADDR_ANY);
-	setsockopt(serverSocket.getSocketFd(),SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
-	bind(serverSocket.getSocketFd(), (struct sockaddr*)&serverSocket.getSocketAddress(), sizeof(serverSocket.getSocketAddress()));
-	serverSocket.setHostName(inet_ntoa(serverSocket.getSocketAddress().sin_addr));
+	int ret;
+
+
+	_serverSocket = Socket();
+	_serverSocket.setSocketAdress(AF_INET, _port, INADDR_ANY);
+	ret = setsockopt(_serverSocket.getSocketFd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+	if (ret < 0)
+		throw std::runtime_error("failed to set options for server socket!");
+	ret = bind(_serverSocket.getSocketFd(), (struct sockaddr*)&_serverSocket.getSocketAddress(), sizeof(_serverSocket.getSocketAddress()));
+	if (ret < 0)
+		throw std::runtime_error("failed to bind the server socket to a local address!");
+	_serverSocket.setIpAddress(inet_ntoa(_serverSocket.getSocketAddress().sin_addr));
 	startListening();
-	pfd.fd = serverSocket.getSocketFd();
+	pfd.fd = _serverSocket.getSocketFd();
 	pfd.events = POLL_IN;
-	pfds.push_back(pfd);
+	_pfds.push_back(pfd);
 }
 
 void Server::initServer()
 {
+	int ret;
+
 	setupServer();
 	while (true)
 	{
-		poll(pfds.data(), pfds.size(), -1);
-		if (pfds[0].revents & POLL_IN)
+		ret = poll(_pfds.data(), _pfds.size(), -1);
+		if (!ret)
+			throw std::runtime_error("Timeout for poll, no file descriptors have been selected!");
+		if (ret < 0)
+			throw std::runtime_error("Poll system call has failed!");
+		if (_pfds[0].revents & POLL_IN)
 		{
 			acceptConnection();
 		}
-		for (size_t i = 1; i < pfds.size(); i++)
+		for (size_t i = 1; i < _pfds.size(); i++)
 		{
-			if (pfds[i].revents & POLL_IN)
-			{
-				std::memset(buffer, 0, sizeof(buffer));
-				recv(pfds[i].fd, buffer, sizeof(buffer), 0);
-				std::cout << "received the message: " << buffer << std::endl;
-				send(pfds[i].fd, buffer, sizeof(buffer), 0);
-			}
+			if (_pfds[i].revents & POLL_IN)
+				receiveData(i);
 		}
 	}
 }
 
 void Server::startListening()
 {
-	listen(serverSocket.getSocketFd(), MAX_CONNECTIONS);
-	std::cout << "Server listening on " << serverSocket.getHostName() << ":"  << port << std::endl;
+	int ret;
+
+	ret = listen(_serverSocket.getSocketFd(), MAX_CONNECTIONS);
+	if (ret < 0)
+		throw std::runtime_error("failed to listen for connections!");
+	std::cout << "Server is listening on " << _serverSocket.getIpAddress() << ":"  << _port << std::endl;
+}
+
+void Server::receiveData(int i)
+{
+	ssize_t bytes;
+	std::memset(_buffer, 0, sizeof(_buffer));
+	bytes = recv(_pfds[i].fd, _buffer, sizeof(_buffer), 0);
+	if (!bytes)
+	{
+		std::cout << "client has gracefully closed the connection" << std::endl;
+		close(_pfds[i].fd);
+		_pfds.erase(_pfds.begin() + i);
+	}
+	if (bytes < 0)
+		throw std::runtime_error("failed to receive a new message!");
+	std::cout << "received the message: " << _buffer;
 }
 
 Socket &Server::getServerSocket()
 {
-	return this->serverSocket;
+	return this->_serverSocket;
 }
 
 void Server::acceptConnection()
 {
 	int fd;
+	struct pollfd pfd;
 
 	Socket c(1);
-	fd = accept(serverSocket.getSocketFd(), (sockaddr *)&c.getSocketAddress(), (socklen_t *)sizeof(c.getSocketAddress()));
+	socklen_t len = sizeof(c.getSocketAddress());
+	fd = accept(_serverSocket.getSocketFd(), (sockaddr *)&c.getSocketAddress(), &len);
+	if (fd < 0)
+		throw std::runtime_error("failed to accept a new connection!");
 	c.setSocketFd(fd);
-	fcntl(fd, F_SETFL, O_NONBLOCK);
-	
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
+		throw std::runtime_error("failed to make a file non-blocking");
+	c.setIpAddress(inet_ntoa(c.getSocketAddress().sin_addr));
 	Client newClient(c);
-	allClients.push_back(newClient);
+	_allClients.push_back(newClient);
 
-	pfds[pfds.size()].fd = fd;
-	pfds[pfds.size()].events = POLL_IN;
-	std::cout << "new client is connected on host: "  << inet_ntoa(c.getSocketAddress().sin_addr) << std::endl;
+	pfd.fd = fd;
+	pfd.events = POLL_IN;
+	pfd.revents = 0;
+	_pfds.push_back(pfd);
+	std::cout << "new client is connected on host: "  << c.getIpAddress() << std::endl;
 }
 
 void Server::quitServer()
 {
-	for (std::vector<struct pollfd>::iterator p = pfds.begin(); p != pfds.end(); p++)
+	std::cout << "closing all connections" << std::endl;
+	for (std::vector<struct pollfd>::iterator p = _pfds.begin(); p != _pfds.end(); p++)
 	{
 		close(p->fd);
 	}
+	exit(-1);
+}
+
+void signalHander(int sig)
+{
+	(void)sig;
+	Server::quitServer();
 }

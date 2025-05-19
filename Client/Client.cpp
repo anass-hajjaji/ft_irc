@@ -1,11 +1,11 @@
-#include "Client.hpp"
+#include "../include/Client.hpp"
 
 Client::Client()
 {
-	clientSocket = Socket(1);
+	_clientSocket = Socket(1);
 }
 
-Client::Client(Socket socket):clientSocket(socket)
+Client::Client(Socket socket):_clientSocket(socket)
 {
 	
 }
@@ -15,6 +15,16 @@ Client::~Client()
 
 void Client::disconnectFromServer()
 {
-	clientSocket.closeSocket();
+	_clientSocket.closeSocket();
 }
 
+
+Socket &Client::getClientSocket()
+{
+	return this->_clientSocket;
+}
+
+void Client::setClientSocket(Socket	&clientSocket)
+{
+	this->_clientSocket = clientSocket;
+}

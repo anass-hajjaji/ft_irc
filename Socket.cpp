@@ -1,52 +1,58 @@
-#include "Socket.hpp"
+#include "include/Socket.hpp"
 
 Socket::Socket()
 {
-	socketFd = socket(AF_INET, SOCK_STREAM, 0);
-	//implement error handling;
+	_socketFd = socket(AF_INET, SOCK_STREAM, 0);
+	if (_socketFd < 0)
+		throw std::runtime_error("failed to create a socket file");
 }
 
 Socket::Socket(int type)
 {
 	if (!type)
-		socketFd =  socket(AF_INET, SOCK_STREAM, 0);
+	{
+		_socketFd =  socket(AF_INET, SOCK_STREAM, 0);
+		if (_socketFd < 0)
+			throw std::runtime_error("failed to create a socket file");
+	}
 }
 
 Socket::~Socket(){}
 
 int	Socket::getSocketFd()
 {
-	return this->socketFd;
+	return this->_socketFd;
 }
 
-void Socket::closeSocket()
+std::string Socket::getIpAddress()
 {
-	close(this->socketFd);
-}
+	return this->_ipAddress;
 
-void Socket::setSocketFd(int fd)
-{
-	this->socketFd = fd;
 }
 
 struct sockaddr_in &Socket::getSocketAddress()
 {
-	return this->socketAdress;
+	return this->_socketAdress;
+}
+
+void Socket::setSocketFd(int fd)
+{
+	this->_socketFd = fd;
 }
 
 void Socket::setSocketAdress(sa_family_t family, in_port_t &port, u_int32_t addr)
 {
-	this->socketAdress.sin_family = family;
-	this->socketAdress.sin_port = htons(port);
-	this->socketAdress.sin_addr.s_addr = addr;
+	this->_socketAdress.sin_family = family;
+	this->_socketAdress.sin_port = htons(port);
+	this->_socketAdress.sin_addr.s_addr = addr;
 }
 
-void Socket::setHostName(std::string hostName)
+void Socket::setIpAddress(std::string hostName)
 {
-	this->hostName = hostName;
+	this->_ipAddress = hostName;
 }
 
-std::string Socket::getHostName()
+void Socket::closeSocket()
 {
-	return this->hostName;
+	close(this->_socketFd);
 }

@@ -1,5 +1,5 @@
-#include "Client/Client.hpp"
-#include "Server/Server.hpp"
+#include "include/Client.hpp"
+#include "include/Server.hpp"
 
 int main(int argc, char **argv)
 {
@@ -12,6 +12,7 @@ int main(int argc, char **argv)
 	std::string password(argv[2]);
 	port = std::atoi(argv[1]);
 
+	signal(SIGINT, signalHander);
 	Server s("test", password, port);
 
 	try

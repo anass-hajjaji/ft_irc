@@ -2,7 +2,7 @@ srcs = main.cpp Server/Server.cpp Client/Client.cpp Socket.cpp
 objs = $(srcs:.cpp=.o)
 cc = c++
 flags = -Werror -Wall -Wextra -std=c++98
-header = Server/Server.hpp Client/Client.hpp Socket.hpp
+headers = include/Server.hpp include/Client.hpp include/Socket.hpp
 name = irc
 
 %.o : %.cpp
@@ -10,7 +10,7 @@ name = irc
 
 all : ${name}
 
-${name} : ${objs} ${header}
+${name} : ${objs} ${headers}
 	${cc} ${flags} ${objs} -o ${name}
 
 clean:
