@@ -1,5 +1,6 @@
 #include "include/Client.hpp"
 #include "include/Server.hpp"
+#include <cstdlib> // Add this line
 
 int main(int argc, char **argv)
 {
@@ -7,7 +8,7 @@ int main(int argc, char **argv)
 	if (argc != 3)
 	{
 		std::cerr << "insuficiant number of args" << std::endl;
-		exit(1);
+		_exit(1);
 	}
 	std::string password(argv[2]);
 	port = std::atoi(argv[1]);

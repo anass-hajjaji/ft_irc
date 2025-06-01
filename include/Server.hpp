@@ -11,6 +11,9 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <signal.h>
+
+#include <cstdlib>
+
 #define MAX_CONNECTIONS 5
 
 
@@ -44,6 +47,12 @@ public:
 	static std::vector<struct pollfd>	getPfds();
 	char								*getBuffer();
 	Client								*getClientByFd(int fd);
+	Client								*getClientByNickName(std::string nickName);
+	void SendPrivMsg_User(const std::string &target_name, const std::string &message, Client *c);
+
+	// anass
+	// void 
+	// static void commands(std::vector<std::string> &params, Client *c);
 };
 
 void parseMessage(char *buf, Client *c);
@@ -54,4 +63,6 @@ void handleUserCommand(std::vector<std::string> &params, Client *c);
 void handlePassCommand(std::vector<std::string> &params, Client *c);
 std::string extractMessage(std::string m);
 void signalHander(int sig);
+//anass
+void commands(std::vector<std::string> &params, Client *c);
 #endif

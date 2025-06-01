@@ -95,7 +95,7 @@ Client *Server::getClientByFd(int fd)
 		if (it->getClientSocket().getSocketFd() == fd)
 			return (&(*it));
 	}
-	return nullptr;
+	return NULL;
 }
 
 Socket &Server::getServerSocket()
@@ -195,7 +195,8 @@ void parseParams(std::vector<std::string> &params, Client *c)
 			handlePassCommand(params, c);
 			break ;
 		default:
-			std::cout << "unknown command " << cmd << std::endl;
+			commands(params, c);
+			// std::cout << "unknown command " << cmd << std::endl;
 	}
 }
 
@@ -227,4 +228,14 @@ std::string extractMessage(std::string m)
 	if (end != std::string::npos)
 		return (m.substr(0, end));
 	return (m);
+}
+
+Client *Server::getClientByNickName(std::string nickName)
+{
+	for (std::vector<Client>::iterator it = _allClients.begin(); it != _allClients.end(); it++)
+	{
+		if (it->getNickName() == nickName)
+			return (&(*it));
+	}
+	return NULL;
 }
