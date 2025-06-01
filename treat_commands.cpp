@@ -3,7 +3,7 @@
 
 void Server::SendPrivMsg_User(const std::string &target_name, const std::string &message, Client *c)
 {
-	Client *target_client = this->getClientByNickName(target_name);
+	Client *target_client = Server::getClientByNickName (target_name);
 	if (target_client)
 	{
 		std::string response = ":" + c->getNickName() + " PRIVMSG " + target_name + " :" + message + "\r\n";
@@ -19,9 +19,10 @@ void Server::SendPrivMsg_User(const std::string &target_name, const std::string 
 // {
 
 // }
-void commands(std::vector<std::string> &params, Client *c)
+void Server::commands(std::vector<std::string> &params, Client *c)
 {
-	(void)	c; // Assuming 'c' is not used in this function, remove if necessary
+	// std::cout << "Received command: " << params[0] << std::endl;
+	// (void)	c; // Assuming 'c' is not used in this function, remove if necessary
 	if (params[0] == "PRIVMSG")
 	{
 		if (params.size() < 3)
@@ -46,7 +47,7 @@ void commands(std::vector<std::string> &params, Client *c)
 		// if (target_name[0] == '#')
 		// 	SendPrivMsg_Channel(target_name, message, c);
 		// else
-		// 	SendPrivMsg_User(target_name, message, c);
+			Server::SendPrivMsg_User(target_name, message, c);
 	}
 		
 }

@@ -144,7 +144,7 @@ void signalHander(int sig)
 }
 
 
-void parseMessage(char *buf, Client *c)
+void Server::parseMessage(char *buf, Client *c)
 {
 	std::string parse(buf);
 	std::vector<std::string> params;
@@ -162,12 +162,13 @@ void parseMessage(char *buf, Client *c)
 	if (params.size() && params[0] != "QUIT")
 	{
 		std::cout << "handling " << params[0] << std::endl;
-		parseParams(params, c);
+
+		Server::parseParams(params, c);
 	}
 	// std::cout << "nick name: " << c->getNickName() << " username: " << c->getUserName() << std::endl;
 }
 
-int	identifyCommand(std::string cmd)
+int	identify_Command(std::string cmd)
 {
 	if (!cmd.compare("NICK"))
 		return (0);
@@ -175,14 +176,16 @@ int	identifyCommand(std::string cmd)
 		return (1);
 	if (!cmd.compare("PASS"))
 		return (2);
+	if (!cmd.compare("PRIVMSG"))
+		return (3);
 	return (-1);
 } 
 
-void parseParams(std::vector<std::string> &params, Client *c)
+void Server::parseParams(std::vector<std::string> &params, Client *c)
 {
 	int cmd;
 
-	cmd = identifyCommand(params[0]);
+	cmd = identify_Command(params[0]);
 	switch (cmd)
 	{
 		case 0:
@@ -194,9 +197,9 @@ void parseParams(std::vector<std::string> &params, Client *c)
 		case 2:
 			handlePassCommand(params, c);
 			break ;
-		default:
-			commands(params, c);
-			// std::cout << "unknown command " << cmd << std::endl;
+		case 3:
+			Server::commands(params, c);
+				// std::cout << "unknown command " << cmd << std::endl;
 	}
 }
 
@@ -238,4 +241,8 @@ Client *Server::getClientByNickName(std::string nickName)
 			return (&(*it));
 	}
 	return NULL;
+}
+std::vector <Client> Server::getAllClients()
+{
+	return _allClients;
 }

@@ -48,21 +48,24 @@ public:
 	char								*getBuffer();
 	Client								*getClientByFd(int fd);
 	Client								*getClientByNickName(std::string nickName);
-	void SendPrivMsg_User(const std::string &target_name, const std::string &message, Client *c);
+	// void SendPrivMsg_User(const std::string &target_name, const std::string &message, Client *c);
 
 	// anass
 	// void 
 	// static void commands(std::vector<std::string> &params, Client *c);
+	void commands(std::vector<std::string> &params, Client *c);
+	void parseMessage(char *buf, Client *c);
+	void parseParams(std::vector<std::string> &params, Client *c);
+	void SendPrivMsg_User(const std::string &target_name, const std::string &message, Client *c);
+
+
 };
 
-void parseMessage(char *buf, Client *c);
-void parseParams(std::vector<std::string> &params, Client *c);
-int	identifyCommand(std::string cmd);
+int	identify_Command(std::string cmd);
 void handleNickNameCommand(std::vector<std::string> &params, Client *c);
 void handleUserCommand(std::vector<std::string> &params, Client *c);
 void handlePassCommand(std::vector<std::string> &params, Client *c);
 std::string extractMessage(std::string m);
 void signalHander(int sig);
 //anass
-void commands(std::vector<std::string> &params, Client *c);
 #endif

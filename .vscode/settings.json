@@ -60,5 +60,6 @@
 		"typeinfo": "cpp",
 		"unordered_map": "cpp",
 		"utility": "cpp"
-	}
+	},
+	"makefile.configureOnOpen": false
 }
